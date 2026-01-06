@@ -8,7 +8,7 @@ from app.db.repository.userRepo import UserRepo
 class UserService:
     def __init__(self, session: Session):
         self.__userRepository = UserRepo(session=session)
-
+    #Sends signup data too user_repository
     def signup(self, user_details: UserCreate) -> UserOutput:
         if self.__userRepository.user_exist_by_email(email=user_details.email):
             raise HTTPException(status_code=400, detail="This user already exists")
@@ -16,7 +16,7 @@ class UserService:
         hashed_pwd = hashing(user_details.password)
         user_details.password = hashed_pwd
         return self.__userRepository.create_user(userDetails=user_details)
-    
+    #Sends login data too user_repository
     def login(self, user_details: UserLogin) -> UserToken:
         if not self.__userRepository.user_exist_by_email(email=user_details.email):
             raise HTTPException(status_code=404, detail="This user does not exist")
