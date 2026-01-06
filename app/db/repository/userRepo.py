@@ -3,6 +3,7 @@ from app.db.model.models import User
 from app.db.schema.schemas import UserCreate, UserOutput
 
 class UserRepo(BaseRepo):
+    #Adds signup data into database
     def create_user(self, userDetails: UserCreate) -> UserOutput:
         user = User(**userDetails.model_dump(exclude_none=True))
 
