@@ -11,7 +11,7 @@ PyPost is a FastAPI-based project where users can **sign up, log in, create post
 - 🌍 View all users' posts  
 - 🔍 Search posts by title in real-time  
 - 🖤 Sidebar navigation between `Create Post` and `Display Posts`  
-
+- 🐳 Dockerized Database, PostgreSQL is used in the project via Docker
 ---
 
 ## 🛠 Tech Stack
