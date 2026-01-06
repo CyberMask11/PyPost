@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Posts Dashboard</title>
+<style>
+/* Root colors */
+:root {
+    --primary-red: #FF4C4C;
+    --primary-purple: #6A0DAD;
+    --primary-black: #0D0D0D;
+    --secondary-black: #1A1A1A;
+    --text-white: #F5F5F5;
+    --highlight: #FF69B4;
+}
+
+/* Global styles */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--primary-black);
+    color: var(--text-white);
+    overflow-x: hidden;
+}
+a { text-decoration: none; color: inherit; }
+
+/* Sidebar */
+#sidebar {
+    width: 220px;
+    background-color: var(--primary-black);
+    height: 100vh;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    border-right: 2px solid var(--primary-red);
+}
+#sidebar h2 {
+    color: var(--primary-red);
+    text-align: center;
+    margin-bottom: 30px;
+}
+.sidebar-btn {
+    padding: 15px 20px;
+    margin: 5px 10px;
+    border: none;
+    background-color: var(--secondary-black);
+    color: var(--text-white);
+    cursor: pointer;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 16px;
+    transition: all 0.2s ease-in-out;
+}
+.sidebar-btn:hover {
+    background-color: var(--primary-purple);
+    transform: translateX(5px);
+}
+
+/* Main content */
+#main {
+    margin-left: 240px;
+    padding: 30px;
+    min-height: 100vh;
+    transition: all 0.3s ease;
+}
+.section { display: none; animation: fadein 0.3s; }
+.section.active { display: block; }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+/* Forms */
+form {
+    display: flex;
+    flex-direction: column;
+    max-width: 450px;
+    margin: auto;
+    background-color: var(--secondary-black);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+}
+form input, form textarea {
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: none;
+    background-color: #333;
+    color: var(--text-white);
+    font-size: 14px;
+}
+form input::placeholder, form textarea::placeholder { color: #bbb; }
+form button {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: var(--primary-red);
+    border: none;
+    border-radius: 8px;
+    color: var(--text-white);
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+form button:hover { background-color: var(--primary-purple); }
+
+/* Post cards */
+.post-card {
+    background-color: #1A1A1A;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary-red);
+    position: relative;
+    transition: 0.2s;
+}
+.post-card:hover {
+    border-left: 4px solid var(--primary-purple);
+    transform: scale(1.01);
+}
+.post-card h3 { margin: 0; color: var(--primary-red); }
+.post-card p { color: #ddd; margin-top: 8px; font-size: 14px; }
+.post-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 5px; }
+.post-actions button { padding: 5px 10px; font-size: 12px; border-radius: 5px; border: none; cursor: pointer; transition: 0.2s; }
+.edit-btn { background-color: var(--primary-purple); color: #fff; }
+.edit-btn:hover { background-color: var(--primary-red); }
+.delete-btn { background-color: #FF0000; color: #fff; }
+.delete-btn:hover { background-color: #6A0DAD; }
+
+/* Search bar */
+.search-input {
+    padding: 12px;
+    margin-bottom: 15px;
+    width: 100%;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    background-color: #333;
+    color: var(--text-white);
+    transition: 0.2s;
+}
+.search-input:focus { background-color: #444; outline: none; }
+
+/* Auth section */
+#auth-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+#auth-section form { width: 400px; }
+#auth-section h2 { text-align: center; margin-bottom: 20px; }
+
+/* Logout button */
+#logout-btn {
+    position: fixed;
+    top: 15px;
+    right: 25px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: none;
+    background-color: var(--primary-red);
+    color: var(--text-white);
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+#logout-btn:hover { background-color: var(--primary-purple); }
+
+/* Messages */
+.message { text-align: center; margin-top: 10px; font-size: 13px; color: #FF4C4C; }
+.success { color: #4CFF4C; }
+
+</style>
+</head>
+<body>
+
+<div id="auth-section" class="active">
+    <form id="loginForm">
+        <h2>Login</h2>
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <button type="submit">Login</button>
+        <p class="message" id="loginMessage"></p>
+        <p style="margin-top:10px;text-align:center;">Don't have an account? <a href="#" id="showSignup">Sign Up</a></p>
+    </form>
+
+    <form id="signupForm" style="display:none;">
+        <h2>Sign Up</h2>
+        <input type="text" id="signupUsername" placeholder="Username" required>
+        <input type="email" id="signupEmail" placeholder="Email" required>
+        <input type="password" id="signupPassword" placeholder="Password" required>
+        <button type="submit">Sign Up</button>
+        <p class="message" id="signupMessage"></p>
+        <p style="margin-top:10px;text-align:center;">Already have an account? <a href="#" id="showLogin">Login</a></p>
+    </form>
+</div>
+
+<div id="dashboard" style="display:none;">
+    <div id="sidebar">
+        <h2>Posts</h2>
+        <button class="sidebar-btn" id="showCreate">Create Post</button>
+        <button class="sidebar-btn" id="showDisplay">Your Posts</button>
+        <button class="sidebar-btn" id="showEvery">Everyone's Posts</button>
+    </div>
+
+    <button id="logout-btn">Logout</button>
+
+    <div id="main">
+        <!-- Create Post Section -->
+        <div class="section" id="createSection">
+            <h2>Create Post</h2>
+            <form id="createPostForm">
+                <input type="text" id="postTitle" placeholder="Post Title" required>
+                <textarea id="postContent" rows="5" placeholder="Content" required></textarea>
+                <button type="submit">Create Post</button>
+                <p class="message" id="createMessage"></p>
+            </form>
+            <h3>Your New Posts</h3>
+            <div id="userPosts"></div>
+        </div>
+
+        <!-- Your Posts Section -->
+        <div class="section" id="displaySection">
+            <h2>Your Posts</h2>
+            <input type="text" id="searchBar" class="search-input" placeholder="Search by title...">
+            <div id="displayPosts"></div>
+        </div>
+
+        <!-- Everyone's Posts Section -->
+        <div class="section" id="everySection">
+            <h2>All Posts</h2>
+            <input type="text" id="searchBarEvery" class="search-input" placeholder="Search everyone's posts...">
+            <div id="everyPosts"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let token = null;
+let userId = null;
+
+const authSection = document.getElementById("auth-section");
+const loginForm = document.getElementById("loginForm");
+const signupForm = document.getElementById("signupForm");
+const loginMessage = document.getElementById("loginMessage");
+const signupMessage = document.getElementById("signupMessage");
+const dashboard = document.getElementById("dashboard");
+const createSection = document.getElementById("createSection");
+const displaySection = document.getElementById("displaySection");
+const everySection = document.getElementById("everySection");
+const showCreateBtn = document.getElementById("showCreate");
+const showDisplayBtn = document.getElementById("showDisplay");
+const showEveryBtn = document.getElementById("showEvery");
+const logoutBtn = document.getElementById("logout-btn");
+const userPostsDiv = document.getElementById("userPosts");
+const displayPostsDiv = document.getElementById("displayPosts");
+const everyPostsDiv = document.getElementById("everyPosts");
+const searchBar = document.getElementById("searchBar");
+const searchBarEvery = document.getElementById("searchBarEvery");
+
+document.getElementById("showSignup").addEventListener("click", e => { e.preventDefault(); loginForm.style.display = "none"; signupForm.style.display = "block"; });
+document.getElementById("showLogin").addEventListener("click", e => { e.preventDefault(); loginForm.style.display = "block"; signupForm.style.display = "none"; });
+
+// Login
+loginForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    loginMessage.textContent = "";
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+    try {
+        const res = await fetch("http://127.0.0.1:8000/auth/login", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({email,password})
+        });
+        const data = await res.json();
+        if(res.status===200){
+            token = data.token;
+            authSection.style.display = "none";
+            dashboard.style.display = "block";
+            await fetchUserPosts();
+            await fetchEveryPosts();
+        } else { loginMessage.textContent = data.detail || "Login failed"; }
+    } catch(err){ loginMessage.textContent = "Error connecting to server"; }
+});
+
+// Signup
+signupForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    signupMessage.textContent = "";
+    const username = document.getElementById("signupUsername").value;
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
+    try {
+        const res = await fetch("http://127.0.0.1:8000/auth/signup", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({username,email,password})
+        });
+        const data = await res.json();
+        if(res.status===201){ signupMessage.textContent = "Account created! Login now"; }
+        else { signupMessage.textContent = data.detail || "Signup failed"; }
+    } catch(err){ signupMessage.textContent = "Error connecting to server"; }
+});
+
+// Sidebar switching
+showCreateBtn.addEventListener("click",()=>{showSection(createSection)});
+showDisplayBtn.addEventListener("click",()=>{showSection(displaySection)});
+showEveryBtn.addEventListener("click",()=>{showSection(everySection)});
+logoutBtn.addEventListener("click",()=>{location.reload()});
+function showSection(section){ createSection.classList.remove("active"); displaySection.classList.remove("active"); everySection.classList.remove("active"); section.classList.add("active"); }
+
+// Create Post
+document.getElementById("createPostForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const title = document.getElementById("postTitle").value;
+    const content = document.getElementById("postContent").value;
+    if(!title||!content) return;
+    await fetch("http://127.0.0.1:8000/Createpost",{
+        method:"POST",
+        headers:{
+            "Authorization":"Bearer "+token,
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({title,content})
+    });
+    document.getElementById("postTitle").value = "";
+    document.getElementById("postContent").value = "";
+    await fetchUserPosts();
+    await fetchEveryPosts();
+});
+
+// Fetch User Posts
+async function fetchUserPosts(){
+    if(!token) return;
+    const res = await fetch("http://127.0.0.1:8000/posts", {headers:{"Authorization":"Bearer "+token}});
+    const data = await res.json();
+    displayPostsDiv.innerHTML = "";
+    userPostsDiv.innerHTML = "";
+    data.forEach(post=>{
+        const card = createPostCard(post,true);
+        displayPostsDiv.appendChild(card);
+        userPostsDiv.appendChild(card.cloneNode(true));
+    });
+}
+
+// Fetch Everyone's Posts
+async function fetchEveryPosts(){
+    if(!token) return;
+    const res = await fetch("http://127.0.0.1:8000/Posts", {headers:{"Authorization":"Bearer "+token}});
+    const data = await res.json();
+    everyPostsDiv.innerHTML = "";
+    data.forEach(post=>{
+        const card = createPostCard(post,post.user_id===userId);
+        everyPostsDiv.appendChild(card);
+    });
+}
+
+// Create Post Card
+function createPostCard(post,own=false){
+    const card = document.createElement("div");
+    card.classList.add("post-card");
+    const h3 = document.createElement("h3");
+    h3.textContent = post.title;
+    const p = document.createElement("p");
+    p.textContent = post.content;
+    card.appendChild(h3); card.appendChild(p);
+    if(own){
+        const actions = document.createElement("div");
+        actions.classList.add("post-actions");
+        const editBtn = document.createElement("button");
+        editBtn.textContent="Edit"; editBtn.classList.add("edit-btn");
+        editBtn.addEventListener("click",()=>editPost(post.id));
+        const delBtn = document.createElement("button");
+        delBtn.textContent="Delete"; delBtn.classList.add("delete-btn");
+        delBtn.addEventListener("click",()=>deletePost(post.id));
+        actions.appendChild(editBtn); actions.appendChild(delBtn);
+        card.appendChild(actions);
+    }
+    return card;
+}
+
+// Delete Post
+async function deletePost(postId){
+    await fetch(`http://127.0.0.1:8000/Deletepost/${postId}`,{
+        method:"DELETE", headers:{"Authorization":"Bearer "+token}
+    });
+    await fetchUserPosts();
+    await fetchEveryPosts();
+}
+
+// Edit Post
+async function editPost(postId){
+    const newTitle = prompt("Enter new title");
+    const newContent = prompt("Enter new content");
+    if(!newTitle && !newContent) return;
+    const body = {};
+    if(newTitle) body.title=newTitle;
+    if(newContent) body.content=newContent;
+    await fetch(`http://127.0.0.1:8000/UpdatePost/${postId}`,{
+        method:"PUT",
+        headers:{
+            "Authorization":"Bearer "+token,
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify(body)
+    });
+    await fetchUserPosts();
+    await fetchEveryPosts();
+}
+
+
+// Search bars
+searchBar.addEventListener("input",()=>{
+    const query = searchBar.value.toLowerCase();
+    document.querySelectorAll("#displayPosts .post-card").forEach(card=>{
+        const title = card.querySelector("h3").textContent.toLowerCase();
+        card.style.display = title.includes(query) ? "block" : "none";
+    });
+});
+searchBarEvery.addEventListener("input",()=>{
+    const query = searchBarEvery.value.toLowerCase();
+    document.querySelectorAll("#everyPosts .post-card").forEach(card=>{
+        const title = card.querySelector("h3").textContent.toLowerCase();
+        card.style.display = title.includes(query) ? "block" : "none";
+    });
+});
+
+</script>
+</body>
+</html>
